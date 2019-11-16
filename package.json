@@ -1,0 +1,22 @@
+{
+  "name": "slon-token",
+  "version": "1.0.0",
+  "description": "Solidity code used for a creation of SLON token. It's an ERC20 token based on openzeppelin.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slonigiraf/slon-token.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/slonigiraf/slon-token/issues"
+  },
+  "homepage": "https://github.com/slonigiraf/slon-token#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.4.0"
+  }
+}
