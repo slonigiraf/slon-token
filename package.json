@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/slonigiraf/slon-token#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^2.4.0"
+    "@openzeppelin/contracts": "^2.4.0",
+    "chai": "^4.2.0"
   }
 }
