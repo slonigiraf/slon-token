@@ -22,12 +22,12 @@ contract ('SlonigirafToken', accounts => {
             symbol.should.equal("SLON");
         });
         it('has the correct decimals', async function(){
-            const decimals = await this.token.decimals();
+            const decimals = (await this.token.decimals()).toString();
             decimals.should.be.bignumber.equal(18);
         });
         it('has the correct total supply', async function(){
-            const totalSupply = await this.token.totalSupply();
-            totalSupply.should.be.bignumber.equal(10000000000000000);
+            const totalSupply = (await this.token.totalSupply()).toString();
+            totalSupply.should.be.bignumber.equal("10000000000000000000000000000000000");
         });
     })
 })
