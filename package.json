@@ -19,5 +19,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0",
     "chai": "^4.2.0"
+  },
+  "devDependencies": {
+    "chai-bignumber": "^3.0.0"
   }
 }

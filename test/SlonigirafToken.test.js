@@ -1,6 +1,10 @@
+const BigNumber = web3.BigNumber;
+
 const SlonigirafToken = artifacts.require("SlonigirafToken");
 
-require('chai').should();
+require('chai')
+    .use(require('chai-bignumber')(BigNumber))
+    .should();
 
 contract ('SlonigirafToken', accounts => {
 
@@ -19,11 +23,11 @@ contract ('SlonigirafToken', accounts => {
         });
         it('has the correct decimals', async function(){
             const decimals = await this.token.decimals();
-            decimals.should.equal(18);
+            decimals.should.be.bignumber.equal(18);
         });
         it('has the correct total supply', async function(){
             const totalSupply = await this.token.totalSupply();
-            totalSupply.should.equal(100);
+            totalSupply.should.be.bignumber.equal(10000000000000000);
         });
     })
 })
