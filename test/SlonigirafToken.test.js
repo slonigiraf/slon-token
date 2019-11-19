@@ -1,7 +1,9 @@
 const BigNumber = require('bignumber.js');
+const truffleAssert = require('truffle-assertions');
 const SlonigirafToken = artifacts.require("SlonigirafToken");
 const expectedInitialTokenSupply = new BigNumber(1e34);
 const expectedNumberOfDecimals = 18;
+
 
 require('chai')
     .use(require('chai-bignumber')(BigNumber))
@@ -52,7 +54,7 @@ contract('SlonigirafToken', accounts => {
 
             this.token.transfer(accountB, transferAmount);
             const expectedAmountInAccountAAfterTransfer = expectedInitialTokenSupply.minus(transferAmount);
-        
+
             const fromAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountA)).toString();
             fromAccountBalanceAfterTransfer.should.be.bignumber.equal(expectedAmountInAccountAAfterTransfer);
 
@@ -61,6 +63,67 @@ contract('SlonigirafToken', accounts => {
 
         });
 
+        it('reverts when funds are insufficient', async function () {
+            const transferAmountSufficient = new BigNumber(10e18);
+            const transferAmountInSufficient = transferAmountSufficient.plus(1);
+
+            const accountBInitial = (await this.token.balanceOf.call(accountB)).toString();
+            accountBInitial.should.be.bignumber.equal(new BigNumber(0));
+
+            this.token.transfer(accountB, transferAmountSufficient, { from: accountA });
+
+            const accountBAfterTransferFromA = (await this.token.balanceOf.call(accountB)).toString();
+            accountBAfterTransferFromA.should.be.bignumber.equal(transferAmountSufficient);
+
+            await truffleAssert.reverts(
+                this.token.transfer(accountC, transferAmountInSufficient, { from: accountB }), "Returned error: VM Exception while processing transaction: revert ERC20: transfer amount exceeds balance -- Reason given: ERC20: transfer amount exceeds balance."
+            );
+
+            const accountBAfterTransferToC = (await this.token.balanceOf.call(accountB)).toString();
+            accountBAfterTransferToC.should.be.bignumber.equal(transferAmountSufficient);
+
+            const accountCAfterTransferFromB = (await this.token.balanceOf.call(accountC)).toString();
+            accountCAfterTransferFromB.should.be.bignumber.equal(new BigNumber(0));
+        });
+
+        /*
+
+
+functions for transfer from
+functions for approval
+and sometimes function for burning extra tokens
+
+overflow or underflow total supply or other uint values. 
+
+transfer:
+
+when the contract address or invalid address is sent instead of recipient address, etc.
+And finally, you must check that the transfer event is logged.
+
+The transferFrom function is very similar to transfer, but here you also 
+need to test that the spender has enough approved balance for sending.
+
+Here are the tests when the spender has insufficient funds required for a transfer.
+
+Checking Approvals
+The approve function is the simplest function from the ERC20 standard. 
+There is no need to check for zero address. It’s enough to check that the allowance array 
+is correctly filled. Also if you don’t have increaseApproval or decreaseApproval 
+functions, approve will overwrite all previous values.
+
+So it is recommend to use these functions as protection from unnecessary overwrites. 
+And of course, it’s important to check that you get correct logs from the Approval event.
+
+Burning Unsold Tokens
+Most smart contracts include a function for burning tokens left after the main sale. 
+Lots of them have a special token holder account, sometimes it’s the owner account. 
+So the best solution for burning unsold tokens is the following:
+
+get amount of tokens on holder’s address
+then subtract this amount from total supply
+and set amount of tokens on holder’s address to zero.
+This will ensure that you don’t burn all the tokens, so it’s important to lay out your token burn strategy in your white paper.
+        */
 
 
     })
