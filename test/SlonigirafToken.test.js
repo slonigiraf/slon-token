@@ -39,11 +39,34 @@ contract('SlonigirafToken', accounts => {
         });
     })
 
-    describe('token functions', function () {
+
+    describe('approve and allowance', function () {
+        const amount = 100;
+        const anotherAmount = 1000;
+        
+        it('approves the requested amount', async function () {
+                await this.token.approve(accountB, amount, { from: accountA });
+                const allowance = await this.token.allowance(accountA, accountB);
+                assert.equal(allowance, amount);
+            });
+        
+        it('approves the requested amount and replaces the previous one', async function () {
+                await this.token.approve(accountB, amount, { from: accountA });
+                await this.token.approve(accountB, anotherAmount, { from: accountA });
+                const allowance = await this.token.allowance(accountA, accountB);
+                assert.equal(allowance, anotherAmount);
+            });
+    });
+
+    describe('balanceOf', function () {
         it("should return the balance of token for specified account", async function () {
             const deployerBalance = (await this.token.balanceOf.call(accountA)).toString();
             deployerBalance.should.be.bignumber.equal(expectedInitialTokenSupply);
         });
+    });
+
+    describe('token functions', function () {
+        
         it("should transfer specified number of tokens to specified account", async function () {
             const transferAmount = new BigNumber(10e18);
 
@@ -134,12 +157,8 @@ contract('SlonigirafToken', accounts => {
 
         /*
 
-        transfer:
+functions for transfer from the same as transfer should be added
 
-And finally, you must check that the transfer event is logged.
-
-
-functions for transfer from
 functions for approval
 and sometimes function for burning extra tokens
 
