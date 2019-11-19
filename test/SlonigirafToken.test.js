@@ -1,5 +1,6 @@
 const BigNumber = require('bignumber.js');
 const truffleAssert = require('truffle-assertions');
+require('truffle-test-utils').init();
 const SlonigirafToken = artifacts.require("SlonigirafToken");
 const expectedInitialTokenSupply = new BigNumber(1e34);
 const expectedNumberOfDecimals = 18;
@@ -61,6 +62,23 @@ contract('SlonigirafToken', accounts => {
             const toAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountB)).toString();
             toAccountBalanceAfterTransfer.should.be.bignumber.equal(transferAmount);
 
+        });
+
+        it("should emit right event at transfer function", async function () {
+            const transferAmount = new BigNumber(10e18);
+
+            const fromAccountBalanceBeforeTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceBeforeTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            const toAccountBalanceBeforeTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            toAccountBalanceBeforeTransfer.should.be.bignumber.equal(0);
+
+            let result = await this.token.transfer(accountB, transferAmount);
+           
+            truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
+                ev.value.toString().should.be.bignumber.equal(transferAmount);
+                return ev.from === accountA && ev.to === accountB;
+            });
         });
 
         it('reverts when funds are insufficient', async function () {
