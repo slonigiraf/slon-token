@@ -86,7 +86,26 @@ contract('SlonigirafToken', accounts => {
             accountCAfterTransferFromB.should.be.bignumber.equal(new BigNumber(0));
         });
 
+        it('reverts when 0 address is sent instead of recipient address', async function () {
+            const transferAmount = new BigNumber(10e18);
+            
+            const accountAInitial = (await this.token.balanceOf.call(accountA)).toString();
+            accountAInitial.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            await truffleAssert.reverts(
+                this.token.transfer("0x0000000000000000000000000000000000000000", transferAmount, { from: accountA }), "Returned error: VM Exception while processing transaction: revert ERC20: transfer to the zero address -- Reason given: ERC20: transfer to the zero address."
+            );
+
+            const accountAFinal = (await this.token.balanceOf.call(accountA)).toString();
+            accountAFinal.should.be.bignumber.equal(expectedInitialTokenSupply);
+        });
+
         /*
+
+        transfer:
+
+when the contract address or invalid address is sent instead of recipient address, etc.
+And finally, you must check that the transfer event is logged.
 
 
 functions for transfer from
@@ -95,10 +114,7 @@ and sometimes function for burning extra tokens
 
 overflow or underflow total supply or other uint values. 
 
-transfer:
 
-when the contract address or invalid address is sent instead of recipient address, etc.
-And finally, you must check that the transfer event is logged.
 
 The transferFrom function is very similar to transfer, but here you also 
 need to test that the spender has enough approved balance for sending.
