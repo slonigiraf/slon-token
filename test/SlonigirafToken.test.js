@@ -100,11 +100,24 @@ contract('SlonigirafToken', accounts => {
             accountAFinal.should.be.bignumber.equal(expectedInitialTokenSupply);
         });
 
+        it('reverts when invalid address is sent instead of recipient address', async function () {
+            const transferAmount = new BigNumber(10e18);
+            
+            const accountAInitial = (await this.token.balanceOf.call(accountA)).toString();
+            accountAInitial.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            await truffleAssert.fails(
+                this.token.transfer("0x", transferAmount, { from: accountA }), "invalid address (arg=\"recipient\", coderType=\"address\", value=\"0x\")"
+            );
+
+            const accountAFinal = (await this.token.balanceOf.call(accountA)).toString();
+            accountAFinal.should.be.bignumber.equal(expectedInitialTokenSupply);
+        });
+
         /*
 
         transfer:
 
-when the contract address or invalid address is sent instead of recipient address, etc.
 And finally, you must check that the transfer event is logged.
 
 
