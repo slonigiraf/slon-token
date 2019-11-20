@@ -156,6 +156,44 @@ contract('SlonigirafToken', accounts => {
         });
     });
 
+    
+    describe('increaseAllowance', function () {
+        const amount = 100;
+        const amountPlusOne = amount+1;
+
+        it('approves the requested amount', async function () {
+            await this.token.approve(accountB, amount, { from: accountA });
+            const allowance = await this.token.allowance(accountA, accountB);
+            assert.equal(allowance, amount);
+
+            await this.token.increaseAllowance(accountB, 1, { from: accountA });
+            const allowanceIncreased = await this.token.allowance(accountA, accountB);
+            assert.equal(allowanceIncreased, amountPlusOne);
+        });
+    });
+    
+    describe('decreaseAllowance', function () {
+        const amount = 100;
+        const amountMinusOne = amount-1;
+        const amountPlusOne = amount+1;
+
+        it('decreased the approved amount', async function () {
+            await this.token.approve(accountB, amount, { from: accountA });
+            await this.token.decreaseAllowance(accountB, 1, { from: accountA });
+            const allowanceDecreased = await this.token.allowance(accountA, accountB);
+            assert.equal(allowanceDecreased, amountMinusOne);
+        });
+
+        it('returns an error when decrease is going below zero lefts allowance intact', async function () {
+            await this.token.approve(accountB, amount, { from: accountA });
+            await truffleAssert.reverts(
+                this.token.decreaseAllowance(accountB, amountPlusOne, { from: accountA }), "Returned error: VM Exception while processing transaction: revert ERC20: decreased allowance below zero -- Reason given: ERC20: decreased allowance below zero."
+            );
+            const allowance = await this.token.allowance(accountA, accountB);
+            assert.equal(allowance, amount);
+        });
+    });
+
     describe('balanceOf', function () {
         it("should return the balance of token for specified account", async function () {
             const deployerBalance = (await this.token.balanceOf.call(accountA)).toString();
@@ -237,6 +275,8 @@ contract('SlonigirafToken', accounts => {
             assert.equal(await this.token.allowance(accountA, accountB), amount);
         });
     });
+
+    
 
     describe('transfer', function () {
         it("should transfer specified number of tokens to specified account", async function () {
@@ -326,46 +366,9 @@ contract('SlonigirafToken', accounts => {
             const accountAFinal = (await this.token.balanceOf.call(accountA)).toString();
             accountAFinal.should.be.bignumber.equal(expectedInitialTokenSupply);
         });
-
-        /*
-
-test that Approval events are emitted
-
-        overflow and underflow issues in all functions
-
-functions for transfer from the same as transfer should be added
-
-and sometimes function for burning extra tokens
-
-overflow or underflow total supply or other uint values. 
-
-
-
-The transferFrom function is very similar to transfer, but here you also 
-need to test that the spender has enough approved balance for sending.
-
-Here are the tests when the spender has insufficient funds required for a transfer.
-
-Checking Approvals
-The approve function is the simplest function from the ERC20 standard. 
-There is no need to check for zero address. It’s enough to check that the allowance array 
-is correctly filled. Also if you don’t have increaseApproval or decreaseApproval 
-functions, approve will overwrite all previous values.
-
-So it is recommend to use these functions as protection from unnecessary overwrites. 
-And of course, it’s important to check that you get correct logs from the Approval event.
-
-Burning Unsold Tokens
-Most smart contracts include a function for burning tokens left after the main sale. 
-Lots of them have a special token holder account, sometimes it’s the owner account. 
-So the best solution for burning unsold tokens is the following:
-
-get amount of tokens on holder’s address
-then subtract this amount from total supply
-and set amount of tokens on holder’s address to zero.
-This will ensure that you don’t burn all the tokens, so it’s important to lay out your token burn strategy in your white paper.
-        */
-
-
     })
+
+
+    //test that Approval events are emitted
+    //overflow and underflow issues in all functions
 })
