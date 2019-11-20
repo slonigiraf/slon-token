@@ -3,7 +3,7 @@ const BigNumber = require('bignumber.js');
 const truffleAssert = require('truffle-assertions');
 require('truffle-test-utils').init();
 const SlonigirafToken = artifacts.require("SlonigirafToken");
-const expectedInitialTokenSupply = new BigNumber(1e34);
+const expectedInitialTokenSupply = new BigNumber(1e31);
 const expectedNumberOfDecimals = 18;
 
 
