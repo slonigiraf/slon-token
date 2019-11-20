@@ -1,3 +1,4 @@
+//TODO: overflow and underflow issues should be tested in all functions
 const BigNumber = require('bignumber.js');
 const truffleAssert = require('truffle-assertions');
 require('truffle-test-utils').init();
@@ -393,8 +394,4 @@ contract('SlonigirafToken', accounts => {
             accountAFinal.should.be.bignumber.equal(expectedInitialTokenSupply);
         });
     })
-
-
-    //test that Approval events are emitted
-    //overflow and underflow issues in all functions
 })
