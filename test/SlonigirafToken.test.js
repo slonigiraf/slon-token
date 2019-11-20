@@ -40,7 +40,32 @@ contract('SlonigirafToken', accounts => {
     })
 
 
-    describe('approve and allowance', function () {
+    describe('allowance', function () {
+        const amount = 100;
+
+        it('approves the requested amount', async function () {
+            assert.equal(await this.token.allowance(accountA, accountB), 0);
+            assert.equal(await this.token.allowance(accountA, accountC), 0);
+            assert.equal(await this.token.allowance(accountA, accountD), 0);
+
+            assert.equal(await this.token.allowance(accountB, accountA), 0);
+            assert.equal(await this.token.allowance(accountB, accountC), 0);
+            assert.equal(await this.token.allowance(accountB, accountD), 0);
+
+            await this.token.approve(accountB, amount, { from: accountA });
+
+            assert.equal(await this.token.allowance(accountA, accountB), amount);
+            assert.equal(await this.token.allowance(accountA, accountC), 0);
+            assert.equal(await this.token.allowance(accountA, accountD), 0);
+
+            assert.equal(await this.token.allowance(accountB, accountA), 0);
+            assert.equal(await this.token.allowance(accountB, accountC), 0);
+            assert.equal(await this.token.allowance(accountB, accountD), 0);
+        });
+    });
+
+
+    describe('approve', function () {
         const amount = 100;
         const amountPlusOne = amount+1;
         const anotherAmount = 1000;
@@ -128,7 +153,7 @@ contract('SlonigirafToken', accounts => {
         });
     });
 
-    describe('token functions', function () {
+    describe('transfer', function () {
         it("should transfer specified number of tokens to specified account", async function () {
             const transferAmount = new BigNumber(10e18);
 
