@@ -83,6 +83,14 @@ contract('SlonigirafToken', accounts => {
             assert.equal(allowance, amount);
         });
 
+        it("should emit right event at approve function", async function () {
+            let result = await this.token.approve(accountB, amount, { from: accountA });
+            truffleAssert.eventEmitted(result, 'Approval', (ev) => {
+                ev.value.toString().should.be.bignumber.equal(amount);
+                return ev.owner === accountA && ev.spender === accountB;
+            });
+        });
+
         it('approves the requested amount and replaces the previous one', async function () {
             await this.token.approve(accountB, amount, { from: accountA });
             await this.token.approve(accountB, anotherAmount, { from: accountA });
@@ -170,6 +178,15 @@ contract('SlonigirafToken', accounts => {
             const allowanceIncreased = await this.token.allowance(accountA, accountB);
             assert.equal(allowanceIncreased, amountPlusOne);
         });
+
+        it("should emit right event at increaseAllowance function", async function () {
+            await this.token.approve(accountB, amount, { from: accountA });
+            let result = await this.token.increaseAllowance(accountB, 1, { from: accountA });
+            truffleAssert.eventEmitted(result, 'Approval', (ev) => {
+                ev.value.toString().should.be.bignumber.equal(amountPlusOne);
+                return ev.owner === accountA && ev.spender === accountB;
+            });
+        });
     });
     
     describe('decreaseAllowance', function () {
@@ -182,6 +199,15 @@ contract('SlonigirafToken', accounts => {
             await this.token.decreaseAllowance(accountB, 1, { from: accountA });
             const allowanceDecreased = await this.token.allowance(accountA, accountB);
             assert.equal(allowanceDecreased, amountMinusOne);
+        });
+
+        it("should emit right event at decreaseAllowance function", async function () {
+            await this.token.approve(accountB, amount, { from: accountA });
+            let result = await this.token.decreaseAllowance(accountB, 1, { from: accountA });
+            truffleAssert.eventEmitted(result, 'Approval', (ev) => {
+                ev.value.toString().should.be.bignumber.equal(amountMinusOne);
+                return ev.owner === accountA && ev.spender === accountB;
+            });
         });
 
         it('returns an error when decrease is going below zero lefts allowance intact', async function () {
