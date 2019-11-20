@@ -42,6 +42,7 @@ contract('SlonigirafToken', accounts => {
 
     describe('allowance', function () {
         const amount = 100;
+        const notSet = undefined;
 
         it('approves the requested amount', async function () {
             assert.equal(await this.token.allowance(accountA, accountB), 0);
@@ -61,6 +62,11 @@ contract('SlonigirafToken', accounts => {
             assert.equal(await this.token.allowance(accountB, accountA), 0);
             assert.equal(await this.token.allowance(accountB, accountC), 0);
             assert.equal(await this.token.allowance(accountB, accountD), 0);
+
+            ((await this.token.balanceOf(accountA)).toString()).should.be.bignumber.equal(expectedInitialTokenSupply);
+            assert.equal(await this.token.balanceOf(accountB), 0);
+            assert.equal(await this.token.balanceOf(accountC), 0);
+            assert.equal(await this.token.balanceOf(accountD), 0);
         });
     });
 
@@ -172,10 +178,57 @@ contract('SlonigirafToken', accounts => {
             const expectedTotalSupplyAfterBurn = expectedInitialTokenSupply.minus(burnAmount);
             totalSupplyAfterBurn.should.be.bignumber.equal(expectedTotalSupplyAfterBurn);
 
-            const expectedAccountBalanceAfterBurn = expectedInitialAccountBalance.minus(burnAmount);
             const observedAccountBalanceAfterBurn = (await this.token.balanceOf.call(accountB)).toString();
             observedAccountBalanceAfterBurn.should.be.bignumber.equal(expectedAccountBalanceAfterBurn);
 
+        });
+    });
+
+
+    describe('burnFrom', function () {
+        const amount = 100;
+        const amountMinusOne = amount-1;
+        const amountPlusOne = amount+1;
+
+        it('approves the requested amount, burns and updates total supply', async function () {
+            const balanceABeforeApprovalAndBurn = (await this.token.balanceOf.call(accountA)).toString();
+            balanceABeforeApprovalAndBurn.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            await this.token.approve(accountB, amount, { from: accountA });
+
+
+            this.token.burnFrom(accountA, amountMinusOne, {from: accountB});
+            const expectedBalanceAAfterBurn = expectedInitialTokenSupply.minus(amountMinusOne);
+            const balanceAAfterBurn = (await this.token.balanceOf.call(accountA)).toString();
+            balanceAAfterBurn.should.be.bignumber.equal(expectedBalanceAAfterBurn);
+
+            assert.equal(await this.token.allowance(accountA, accountB), 1);
+
+            const balanceBAfterApprovalAndBurn = (await this.token.balanceOf.call(accountB)).toString();
+            balanceBAfterApprovalAndBurn.should.be.bignumber.equal(0);
+
+            const totalSupplyAfterBurn = new BigNumber(await this.token.totalSupply());
+            const expectedTotalSupplyAfterBurn = expectedInitialTokenSupply.minus(amountMinusOne);
+            totalSupplyAfterBurn.should.be.bignumber.equal(expectedTotalSupplyAfterBurn);
+        });
+
+        it('approves the requested amount, reverts when approved account tries to burn an amount exceeding the approved amount', async function () {
+            await this.token.approve(accountB, amount, { from: accountA });
+
+            await truffleAssert.reverts(
+                this.token.burnFrom(accountA, amountPlusOne, {from: accountB}), "Returned error: VM Exception while processing transaction: revert ERC20: burn amount exceeds allowance -- Reason given: ERC20: burn amount exceeds allowance."
+            );
+            
+            const balanceAAfterBurn = (await this.token.balanceOf.call(accountA)).toString();
+            balanceAAfterBurn.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            const balanceBAfterApprovalAndBurn = (await this.token.balanceOf.call(accountB)).toString();
+            balanceBAfterApprovalAndBurn.should.be.bignumber.equal(0);
+
+            const totalSupplyAfterBurn = new BigNumber(await this.token.totalSupply());
+            totalSupplyAfterBurn.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            assert.equal(await this.token.allowance(accountA, accountB), amount);
         });
     });
 
