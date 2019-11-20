@@ -59,6 +59,15 @@ module.exports = {
       gas: 2000000
     },
 
+    mainnet: {
+      provider: function() {
+        return new HDWalletProvider(mnemonic, "https://mainnet.infura.io/v3/d9a9325e4d98443d9fdb2c5d069753cb")
+      },
+      network_id: 1,
+      gas: 2000000,
+      gasPrice: 5e9
+    }
+
     // Another network with more advanced options...
     // advanced: {
       // port: 8777,             // Custom port
