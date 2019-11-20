@@ -43,19 +43,48 @@ contract('SlonigirafToken', accounts => {
     describe('approve and allowance', function () {
         const amount = 100;
         const anotherAmount = 1000;
-        
+
         it('approves the requested amount', async function () {
-                await this.token.approve(accountB, amount, { from: accountA });
-                const allowance = await this.token.allowance(accountA, accountB);
-                assert.equal(allowance, amount);
-            });
-        
+            await this.token.approve(accountB, amount, { from: accountA });
+            const allowance = await this.token.allowance(accountA, accountB);
+            assert.equal(allowance, amount);
+        });
+
         it('approves the requested amount and replaces the previous one', async function () {
-                await this.token.approve(accountB, amount, { from: accountA });
-                await this.token.approve(accountB, anotherAmount, { from: accountA });
-                const allowance = await this.token.allowance(accountA, accountB);
-                assert.equal(allowance, anotherAmount);
-            });
+            await this.token.approve(accountB, amount, { from: accountA });
+            await this.token.approve(accountB, anotherAmount, { from: accountA });
+            const allowance = await this.token.allowance(accountA, accountB);
+            assert.equal(allowance, anotherAmount);
+        });
+        it('approves the requested amount and requested amount can be transfered', async function () {
+            const fromAccountBalanceBeforeApprovalAndTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceBeforeApprovalAndTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            const approvedAccountBalanceBeforeApprovalAndTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            approvedAccountBalanceBeforeApprovalAndTransfer.should.be.bignumber.equal(0);
+
+            await this.token.approve(accountB, amount, { from: accountA });
+
+            const fromAccountBalanceAfterApprovalBeforeTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceAfterApprovalBeforeTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            const approvedAccountBalanceAfterApprovalBeforeTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            approvedAccountBalanceAfterApprovalBeforeTransfer.should.be.bignumber.equal(0);
+
+
+            this.token.transferFrom(accountA, accountC, amount, {from: accountB});
+            const expectedAmountInAccountAAfterTransfer = expectedInitialTokenSupply.minus(amount);
+
+            const fromAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceAfterTransfer.should.be.bignumber.equal(expectedAmountInAccountAAfterTransfer);
+
+            const approvedAccountBalanceAfterApprovalAndTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            approvedAccountBalanceAfterApprovalAndTransfer.should.be.bignumber.equal(0);
+
+            const toAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountC)).toString();
+            toAccountBalanceAfterTransfer.should.be.bignumber.equal(amount);
+
+        });
     });
 
     describe('balanceOf', function () {
@@ -66,7 +95,6 @@ contract('SlonigirafToken', accounts => {
     });
 
     describe('token functions', function () {
-        
         it("should transfer specified number of tokens to specified account", async function () {
             const transferAmount = new BigNumber(10e18);
 
@@ -97,7 +125,7 @@ contract('SlonigirafToken', accounts => {
             toAccountBalanceBeforeTransfer.should.be.bignumber.equal(0);
 
             let result = await this.token.transfer(accountB, transferAmount);
-           
+
             truffleAssert.eventEmitted(result, 'Transfer', (ev) => {
                 ev.value.toString().should.be.bignumber.equal(transferAmount);
                 return ev.from === accountA && ev.to === accountB;
@@ -129,7 +157,7 @@ contract('SlonigirafToken', accounts => {
 
         it('reverts when 0 address is sent instead of recipient address', async function () {
             const transferAmount = new BigNumber(10e18);
-            
+
             const accountAInitial = (await this.token.balanceOf.call(accountA)).toString();
             accountAInitial.should.be.bignumber.equal(expectedInitialTokenSupply);
 
@@ -143,7 +171,7 @@ contract('SlonigirafToken', accounts => {
 
         it('reverts when invalid address is sent instead of recipient address', async function () {
             const transferAmount = new BigNumber(10e18);
-            
+
             const accountAInitial = (await this.token.balanceOf.call(accountA)).toString();
             accountAInitial.should.be.bignumber.equal(expectedInitialTokenSupply);
 
