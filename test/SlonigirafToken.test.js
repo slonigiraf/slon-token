@@ -42,6 +42,7 @@ contract('SlonigirafToken', accounts => {
 
     describe('approve and allowance', function () {
         const amount = 100;
+        const amountPlusOne = amount+1;
         const anotherAmount = 1000;
 
         it('approves the requested amount', async function () {
@@ -83,6 +84,39 @@ contract('SlonigirafToken', accounts => {
 
             const toAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountC)).toString();
             toAccountBalanceAfterTransfer.should.be.bignumber.equal(amount);
+
+        });
+
+        it('approves the requested amount, reverts when approved account tries to send an amount exceeding the approved amount', async function () {
+            const fromAccountBalanceBeforeApprovalAndTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceBeforeApprovalAndTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            const approvedAccountBalanceBeforeApprovalAndTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            approvedAccountBalanceBeforeApprovalAndTransfer.should.be.bignumber.equal(0);
+
+            await this.token.approve(accountB, amount, { from: accountA });
+
+            const fromAccountBalanceAfterApprovalBeforeTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceAfterApprovalBeforeTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            const approvedAccountBalanceAfterApprovalBeforeTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            approvedAccountBalanceAfterApprovalBeforeTransfer.should.be.bignumber.equal(0);
+
+
+            await truffleAssert.reverts(
+                this.token.transferFrom(accountA, accountC, amountPlusOne, {from: accountB}), "Returned error: VM Exception while processing transaction: revert ERC20: transfer amount exceeds allowance -- Reason given: ERC20: transfer amount exceeds allowance."
+            );
+
+            const expectedAmountInAccountAAfterTransfer = expectedInitialTokenSupply;
+
+            const fromAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountA)).toString();
+            fromAccountBalanceAfterTransfer.should.be.bignumber.equal(expectedAmountInAccountAAfterTransfer);
+
+            const approvedAccountBalanceAfterApprovalAndTransfer = (await this.token.balanceOf.call(accountB)).toString();
+            approvedAccountBalanceAfterApprovalAndTransfer.should.be.bignumber.equal(0);
+
+            const toAccountBalanceAfterTransfer = (await this.token.balanceOf.call(accountC)).toString();
+            toAccountBalanceAfterTransfer.should.be.bignumber.equal(0);
 
         });
     });
