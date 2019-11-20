@@ -89,7 +89,7 @@ contract('SlonigirafToken', accounts => {
             const allowance = await this.token.allowance(accountA, accountB);
             assert.equal(allowance, anotherAmount);
         });
-        it('approves the requested amount and requested amount can be transfered', async function () {
+        it('approved amount can be transfered', async function () {
             const fromAccountBalanceBeforeApprovalAndTransfer = (await this.token.balanceOf.call(accountA)).toString();
             fromAccountBalanceBeforeApprovalAndTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
 
@@ -120,7 +120,7 @@ contract('SlonigirafToken', accounts => {
             assert.equal(allowanceUpdated, 1);
         });
 
-        it('approves the requested amount, reverts when approved account tries to send an amount exceeding the approved amount', async function () {
+        it('reverts when approved account tries to send an amount exceeding the approved amount', async function () {
             const fromAccountBalanceBeforeApprovalAndTransfer = (await this.token.balanceOf.call(accountA)).toString();
             fromAccountBalanceBeforeApprovalAndTransfer.should.be.bignumber.equal(expectedInitialTokenSupply);
 
@@ -200,7 +200,6 @@ contract('SlonigirafToken', accounts => {
 
             await this.token.approve(accountB, amount, { from: accountA });
 
-
             this.token.burnFrom(accountA, amountMinusOne, {from: accountB});
             const expectedBalanceAAfterBurn = expectedInitialTokenSupply.minus(amountMinusOne);
             const balanceAAfterBurn = (await this.token.balanceOf.call(accountA)).toString();
@@ -214,6 +213,9 @@ contract('SlonigirafToken', accounts => {
             const totalSupplyAfterBurn = new BigNumber(await this.token.totalSupply());
             const expectedTotalSupplyAfterBurn = expectedInitialTokenSupply.minus(amountMinusOne);
             totalSupplyAfterBurn.should.be.bignumber.equal(expectedTotalSupplyAfterBurn);
+
+            const allowanceAfterBurn = await this.token.allowance(accountA, accountB);
+            assert.equal(allowanceAfterBurn, 1);
         });
 
         it('approves the requested amount, reverts when approved account tries to burn an amount exceeding the approved amount', async function () {
@@ -326,6 +328,8 @@ contract('SlonigirafToken', accounts => {
         });
 
         /*
+
+test that Approval events are emitted
 
         overflow and underflow issues in all functions
 
