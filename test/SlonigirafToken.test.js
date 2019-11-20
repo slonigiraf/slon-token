@@ -153,6 +153,32 @@ contract('SlonigirafToken', accounts => {
         });
     });
 
+    describe('burn', function () {
+        const expectedInitialAccountBalance = new BigNumber(100);
+        const burnAmount = new BigNumber(10);
+        const expectedAccountBalanceAfterBurn = expectedInitialAccountBalance.minus(burnAmount);
+
+        it('burns tokens from specified account and reduces the total supply', async function () {
+            this.token.transfer(accountB, expectedInitialAccountBalance);
+            const observedInitialAccountBalance = (await this.token.balanceOf.call(accountB)).toString();
+            observedInitialAccountBalance.should.be.bignumber.equal(expectedInitialAccountBalance);
+
+            const totalSupplyBeforeBurn = new BigNumber(await this.token.totalSupply());
+            totalSupplyBeforeBurn.should.be.bignumber.equal(expectedInitialTokenSupply);
+
+            await this.token.burn(burnAmount, { from: accountB });
+
+            const totalSupplyAfterBurn = new BigNumber(await this.token.totalSupply());
+            const expectedTotalSupplyAfterBurn = expectedInitialTokenSupply.minus(burnAmount);
+            totalSupplyAfterBurn.should.be.bignumber.equal(expectedTotalSupplyAfterBurn);
+
+            const expectedAccountBalanceAfterBurn = expectedInitialAccountBalance.minus(burnAmount);
+            const observedAccountBalanceAfterBurn = (await this.token.balanceOf.call(accountB)).toString();
+            observedAccountBalanceAfterBurn.should.be.bignumber.equal(expectedAccountBalanceAfterBurn);
+
+        });
+    });
+
     describe('transfer', function () {
         it("should transfer specified number of tokens to specified account", async function () {
             const transferAmount = new BigNumber(10e18);
@@ -244,9 +270,10 @@ contract('SlonigirafToken', accounts => {
 
         /*
 
+        overflow and underflow issues in all functions
+
 functions for transfer from the same as transfer should be added
 
-functions for approval
 and sometimes function for burning extra tokens
 
 overflow or underflow total supply or other uint values. 
